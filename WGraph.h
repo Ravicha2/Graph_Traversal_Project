@@ -21,7 +21,7 @@ void  showGraph(Graph);
 void  freeGraph(Graph);
 
 Path Djikstra(Graph,Vertex,Vertex);
-int numsteps(Path p);
-int steps(Path p,int i);
-int distance(Path p);
-void resetPath(Path p);
+int numsteps(Path);
+int steps(Path,int);
+int distance(Path,int);
+void resetPath(Path);
