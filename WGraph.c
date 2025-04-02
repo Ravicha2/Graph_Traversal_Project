@@ -16,7 +16,7 @@ typedef struct GraphRep {
 typedef struct ShortestPath{
    int *steps;
    int numstep;
-   int weightsum;
+   int *stepweight;
 }ShortestPath;
 
 
@@ -149,12 +149,16 @@ Path Djikstra(Graph g, Vertex v, Vertex w) {
       backtrack = pred[backtrack];
       r++;
    }
+
    p->steps = malloc((r)*sizeof(int));
    assert(p->steps != NULL);
+   p->stepweight = malloc((r)*sizeof(int));
+   assert(p->stepweight != NULL);
+
    for (int i = r-1; i >= 0; i--){
       p->steps[r-i-1] = reversedsteps[i];
+      p->stepweight[r-i-1] = dist[reversedsteps[i]];
    }
-   p->weightsum = dist[w];
    p->numstep = r;
    return p;
 }
@@ -167,8 +171,8 @@ int steps(Path p, int i) {
    return p->steps[i];
 }
 
-int distance(Path p) {
-   return p->weightsum;
+int distance(Path p,int i) {
+   return p->stepweight[i];
 }
 
 void resetPath(Path p) {
