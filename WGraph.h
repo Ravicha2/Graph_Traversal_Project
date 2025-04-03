@@ -12,6 +12,21 @@ typedef struct Edge {
    int    weight;
 } Edge;
 
+typedef struct{
+    char dep_landmark[31];
+    char dep_time[5];
+    char arv_landmark[31];
+    char arv_time[5];
+    int timeinmin;
+
+}ferryschedule;
+
+typedef struct{
+    int *landmarkType;
+    ferryschedule *schedules;
+    int numFerry;
+}ferryDetail;
+
 Graph newGraph(int);
 int   numOfVertices(Graph);
 void  insertEdge(Graph, Edge);
@@ -20,7 +35,7 @@ int   adjacent(Graph, Vertex, Vertex);  // returns weight, or 0 if not adjacent
 void  showGraph(Graph);
 void  freeGraph(Graph);
 
-Path Djikstra(Graph,Vertex,Vertex);
+Path Djikstra(Graph,Vertex,Vertex,ferryDetail,char*,char **);
 int numsteps(Path);
 int steps(Path,int);
 int distance(Path,int);

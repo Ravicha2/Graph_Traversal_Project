@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include "WGraph.h"
-
+/*
 typedef struct{
     char dep_landmark[31];
     char dep_time[5];
@@ -18,6 +18,8 @@ typedef struct{
     ferryschedule *schedules;
     int numFerry;
 }ferryDetail;
+*/
+/*-------------helper function--------------------*/
 
 int getduration(ferryschedule *f){ //duration traveled by ferry
     int dep = atoi(f->dep_time);
@@ -37,7 +39,7 @@ char *getArrival(char *departAt, int duration) { //arrival time in XXXX
     int intHr = departTime/100;
     int intMin = (departTime%100) + duration;
 
-    if (intMin > 60){
+    if (intMin >= 60){
         intHr += intMin/60;
         intMin = intMin%60;
     }
@@ -61,6 +63,7 @@ char** getlandmark(int numlandmarks){
     return landmarks;
 }
 
+/*----------- Main function-------------------*/
 
 void walkingLink(Graph g,int links, char **landmarks) {
     char from[31];
@@ -137,7 +140,7 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
     char fromLandmark[31];
     char tolandmark[31];
     char departAt[5];
-
+    //char dummy[5] = "0000";
     while (true) {
         printf("\nFrom: ");
         scanf("%s",fromLandmark);
@@ -166,32 +169,37 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
                 indexTo = i; //dest
             }
         }
-        Path p = Djikstra(g,indexFrom,indexTo);
-        
+        Path p = Djikstra(g,indexFrom,indexTo,takeFerry,departAt,landmarks);
+        if (numsteps(p) == 1){
+            printf("No route.\n");
+        }
         int ferryIndex;
         for (int s =0; s < numsteps(p)-1; s++){
-            int duration = adjacent(g,steps(p,s),steps(p,s+1)); 
-            if (duration > 0) {
-            char *arriveAt = getArrival(departAt,duration);
-            for (int j=0; j < takeFerry.numFerry; j++) {
-                if ((strcmp(takeFerry.schedules[j].dep_landmark,landmarks[steps(p,s)]) == 0) && (strcmp(takeFerry.schedules[j].arv_landmark,landmarks[steps(p,s+1)]) == 0)) {
-                    ferryIndex = j;
+            int duration = adjacent(g,steps(p,s),steps(p,s+1)); // must not include waiting time, corrected
+            
+            if (duration>0) {
+                char *arriveAt = getArrival(departAt,distance(p,s+1)-distance(p,s));
+                
+                for (int j=0; j < takeFerry.numFerry; j++) {
+                    if ((strcmp(takeFerry.schedules[j].dep_landmark, landmarks[steps(p,s)]) == 0) && (strcmp(takeFerry.schedules[j].arv_landmark, landmarks[steps(p,s+1)]) == 0)) {
+                        ferryIndex = j;
+                    }
                 }
-            }
-            if ((takeFerry.landmarkType[steps(p,s)] == 1) && (takeFerry.landmarkType[steps(p,s+1)] == 1)) {
-                if (atoi(departAt) < atoi(takeFerry.schedules[steps(p,s)].dep_time)) {
-                printf("Ferry %d minute(s):\n",duration);
-                printf("  %s %s\n", takeFerry.schedules[steps(p,s)].dep_time,landmarks[steps(p,s)]);
-                printf("  %s %s\n", takeFerry.schedules[ferryIndex].arv_time,landmarks[steps(p,s+1)]);
-                }else{
-                    printf("No route.\n");
-                }
-            }else{
-                printf("Walk %d minute(s):\n",duration);
-                printf("  %s %s\n",departAt,landmarks[steps(p,s)]);
-                printf("  %s %s\n",arriveAt,landmarks[steps(p,s+1)]);
-            }
-            strcpy(departAt,arriveAt);
+            
+                if ((takeFerry.landmarkType[steps(p,s)] == 1) && (takeFerry.landmarkType[steps(p,s+1)] == 1)) {
+                    if (atoi(departAt) <= atoi(takeFerry.schedules[ferryIndex].dep_time)) {
+                        printf("Ferry %d minute(s):\n",duration);
+                        printf("  %s %s\n", takeFerry.schedules[ferryIndex].dep_time,landmarks[steps(p,s)]);     
+                        printf("  %s %s\n", takeFerry.schedules[ferryIndex].arv_time,landmarks[steps(p,s+1)]);
+                    }else{
+                        printf("No route.\n");
+                    }
+                    }else{
+                    printf("Walk %d minute(s):\n",duration);
+                    printf("  %s %s\n",departAt,landmarks[steps(p,s)]);     //must include wating time if passed ferry
+                    printf("  %s %s\n",arriveAt,landmarks[steps(p,s+1)]); //must include wating time if passed ferry , still wrong
+                    }
+                    strcpy(departAt,arriveAt);
             }else{
                 printf("No route.\n");
             }

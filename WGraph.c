@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+
+#define INT_MAX 999999
 
 typedef struct GraphRep {
    int **edges;  // adjacency matrix storing positive weights
@@ -97,7 +100,7 @@ void freeGraph(Graph g) {
 }
 
 int minDistance(Graph g, int dist[], bool visited[]) {
-    int min = INT16_MAX;
+    int min = INT_MAX;
     int minIndex = -1;
     for (int i = 0; i < numOfVertices(g); i++) {
         if (!visited[i] && dist[i] <= min) {
@@ -108,31 +111,57 @@ int minDistance(Graph g, int dist[], bool visited[]) {
     return minIndex;
 }
 
-Path Djikstra(Graph g, Vertex v, Vertex w) {
+Path Djikstra(Graph g, Vertex v, Vertex w,ferryDetail takeFerry ,char *departAt,char **landmarks) {
+   //Djikstra init param
    int dist[numOfVertices(g)];
    bool visited[numOfVertices(g)];      
    int pred[numOfVertices(g)];
    int minIndex = v;
+
+   //Departure time init
+   int departTime = atoi(departAt);
+   int waitTime;
+
    //init dist
    for (int i = 0; i < numOfVertices(g); i++) {
-      dist[i] = INT16_MAX;
+      dist[i] = INT_MAX;
       pred[i] = -1;
       visited[i] = false;
    }
+
    //find shortest path
-   dist[v] = 0;
+   dist[v] = departTime;
    for (int j = 0; j < numOfVertices(g)-1; j++) {
       minIndex = minDistance(g,dist,visited);
       visited[minIndex] = true;
+      int ferryIndex = -1;
+      int timebalance;
       if (minIndex == -1) break;
 
-      for (int k=0; k < numOfVertices(g); k++) {
-         if (g->edges[minIndex][k]>0 && dist[minIndex] != INT16_MAX) {       //djikstra
-            if (dist[minIndex] + g->edges[minIndex][k] < dist[k]){
+      for (int k=0; k < numOfVertices(g); k++) {                                                                                                                                                  
+         if (g->edges[minIndex][k]>0 && dist[minIndex] != INT_MAX) {  
+            
+            if ((takeFerry.landmarkType[minIndex] == 1) && (takeFerry.landmarkType[k] == 1)) {
+               for (int f=0; f < takeFerry.numFerry; f++) { // setup for ferry
+                  if ((strcmp(takeFerry.schedules[f].dep_landmark, landmarks[minIndex]) == 0) && (strcmp(takeFerry.schedules[f].arv_landmark, landmarks[k]) == 0)) {
+                     ferryIndex = f;
+                  }
+               }
+               timebalance = dist[minIndex] + 40;
+            
+               if (timebalance <= atoi(takeFerry.schedules[ferryIndex].dep_time) ) { //ferry
+                  waitTime = atoi(takeFerry.schedules[ferryIndex].dep_time) - timebalance;
+                  if (dist[minIndex] + waitTime + g->edges[minIndex][k] < dist[k]){ 
+                     dist[k] = dist[minIndex] + waitTime + g->edges[minIndex][k];
+                     pred[k] = minIndex;
+                  }
+               }
+            } 
+            else if (dist[minIndex] + g->edges[minIndex][k] < dist[k]){ // Walk
                dist[k] = dist[minIndex] + g->edges[minIndex][k];
                pred[k] = minIndex;
             }
-         }        
+         }      
       }  
    }
    // find pred of dest then find path back to src through pred
