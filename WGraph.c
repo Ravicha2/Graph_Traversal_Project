@@ -120,7 +120,6 @@ Path Djikstra(Graph g, Vertex v, Vertex w,ferryDetail takeFerry ,char *departAt,
 
    //Departure time init
    int departTime = atoi(departAt);
-   int waitTime;
 
    //init dist
    for (int i = 0; i < numOfVertices(g); i++) {
@@ -142,22 +141,26 @@ Path Djikstra(Graph g, Vertex v, Vertex w,ferryDetail takeFerry ,char *departAt,
          if (g->edges[minIndex][k]>0 && dist[minIndex] != INT_MAX) {  
             
             if ((takeFerry.landmarkType[minIndex] == 1) && (takeFerry.landmarkType[k] == 1)) {
+               if (dist[minIndex]%100 >= 60) {
+                  timebalance = dist[minIndex] + 40;
+               }else{
+                  timebalance = dist[minIndex];
+               }
+
                for (int f=0; f < takeFerry.numFerry; f++) { // setup for ferry
                   if ((strcmp(takeFerry.schedules[f].dep_landmark, landmarks[minIndex]) == 0) && (strcmp(takeFerry.schedules[f].arv_landmark, landmarks[k]) == 0)) {
                      ferryIndex = f;
                   }
-               }
-               timebalance = dist[minIndex] + 40;
-            
-               if (timebalance <= atoi(takeFerry.schedules[ferryIndex].dep_time) ) { //ferry
-                  waitTime = atoi(takeFerry.schedules[ferryIndex].dep_time) - timebalance;
-                  if (dist[minIndex] + waitTime + g->edges[minIndex][k] < dist[k]){ 
-                     dist[k] = dist[minIndex] + waitTime + g->edges[minIndex][k];
-                     pred[k] = minIndex;
+                  
+                  if (timebalance <= atoi(takeFerry.schedules[ferryIndex].dep_time) ) { //ferry
+                     int waitTime = atoi(takeFerry.schedules[ferryIndex].dep_time) - timebalance;
+                     if (dist[minIndex] + waitTime + g->edges[minIndex][k] < dist[k]){ 
+                        dist[k] = dist[minIndex] + waitTime + g->edges[minIndex][k];
+                        pred[k] = minIndex;
+                     }
                   }
                }
-            } 
-            else if (dist[minIndex] + g->edges[minIndex][k] < dist[k]){ // Walk
+            } else if (dist[minIndex] + g->edges[minIndex][k] < dist[k]){ // Walk
                dist[k] = dist[minIndex] + g->edges[minIndex][k];
                pred[k] = minIndex;
             }
