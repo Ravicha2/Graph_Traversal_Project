@@ -100,6 +100,7 @@ ferryDetail ferry(Graph g,int numFerry,char **landmarks){
         scanf("%30s",f[i].arv_landmark);
         scanf("%4s",f[i].arv_time);
     }
+    
 
     int *landmarkType = calloc(numOfVertices(g)+numFerry,sizeof(int));      //for checking if landmarks can be traveled by ferry
     assert(landmarkType != NULL);                                           //if 0: can only visited through walking
@@ -153,6 +154,8 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
         if (strcmp(departAt,"done") == 0) {
             break;
         }
+        printf("\n");
+
         int indexFrom = -1;
         int indexTo = -1;
         for (int i=0;i<numOfVertices(g);i++){
@@ -167,7 +170,8 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
         
         int ferryIndex;
         for (int s =0; s < numsteps(p)-1; s++){
-            int duration = adjacent(g,steps(p,s),steps(p,s+1)); // something wrong
+            int duration = adjacent(g,steps(p,s),steps(p,s+1)); 
+            if (duration > 0) {
             char *arriveAt = getArrival(departAt,duration);
             for (int j=0; j < takeFerry.numFerry; j++) {
                 if ((strcmp(takeFerry.schedules[j].dep_landmark,landmarks[steps(p,s)]) == 0) && (strcmp(takeFerry.schedules[j].arv_landmark,landmarks[steps(p,s+1)]) == 0)) {
@@ -176,18 +180,21 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
             }
             if ((takeFerry.landmarkType[steps(p,s)] == 1) && (takeFerry.landmarkType[steps(p,s+1)] == 1)) {
                 if (atoi(departAt) < atoi(takeFerry.schedules[steps(p,s)].dep_time)) {
-                printf("\nFerry %d minute(s):\n",duration);
+                printf("Ferry %d minute(s):\n",duration);
                 printf("  %s %s\n", takeFerry.schedules[steps(p,s)].dep_time,landmarks[steps(p,s)]);
                 printf("  %s %s\n", takeFerry.schedules[ferryIndex].arv_time,landmarks[steps(p,s+1)]);
-                } else{
-                    printf("No route.");
+                }else{
+                    printf("No route.\n");
                 }
             }else{
-                printf("\nWalk %d minute(s):\n",duration);
+                printf("Walk %d minute(s):\n",duration);
                 printf("  %s %s\n",departAt,landmarks[steps(p,s)]);
                 printf("  %s %s\n",arriveAt,landmarks[steps(p,s+1)]);
             }
             strcpy(departAt,arriveAt);
+            }else{
+                printf("No route.\n");
+            }
         }
     }
 }
@@ -212,7 +219,7 @@ int main(void) {
 
     tripPlan(g,landmarks,takeFerry);              //display result
 
-    printf("Happy travels!");
+    printf("Happy travels!\n");
 
     free(takeFerry.landmarkType);                   //free memory
     free(takeFerry.schedules);
