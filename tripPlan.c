@@ -4,37 +4,21 @@
 #include <assert.h>
 #include <string.h>
 #include "WGraph.h"
-/*
-typedef struct{
-    char dep_landmark[31];
-    char dep_time[5];
-    char arv_landmark[31];
-    char arv_time[5];
-    int timeinmin;
 
-}ferryschedule;
-typedef struct{
-    int *landmarkType;
-    ferryschedule *schedules;
-    int numFerry;
-}ferryDetail;
-*/
 /*-------------helper function--------------------*/
 
-int getduration(ferryschedule *f){ //duration traveled by ferry
-    int dep = atoi(f->dep_time);
+int getduration(ferryschedule *f){        //duration traveled by ferry
+    int dep = atoi(f->dep_time);          //convert XXXX format to compute time in minutes
     int arv = atoi(f->arv_time);
     int hourtomin = (((arv/100)-(dep/100))*60)+((arv%100)-(dep%100));
     if (hourtomin > 0) {
         return hourtomin;
-    }else{
-        printf("Invalid schedule");
     }
     return 0;
 }
 
-char *getArrival(char *departAt, int duration) { //arrival time in XXXX
-    static char arriveAt[21];
+char *getArrival(char *departAt, int duration) { //use departure time in XXXX and the edge
+    static char arriveAt[21];                    //to get arrival time then convert to XXXX format
     int departTime = atoi(departAt);
     int intHr = departTime/100;
     int intMin = (departTime%100) + duration;
@@ -48,9 +32,9 @@ char *getArrival(char *departAt, int duration) { //arrival time in XXXX
     return arriveAt;
 }
 
-char** getlandmark(int numlandmarks){
+char** getlandmark(int numlandmarks){        //  pointer to arrays of landmark names
     char landmarkName[31];
-    char **landmarks = malloc(numlandmarks*sizeof(char *));     //array of landmarks
+    char **landmarks = malloc(numlandmarks*sizeof(char *));     
     assert(landmarks != NULL);
 
     for (int i = 0; i < numlandmarks; i++) {
@@ -58,14 +42,14 @@ char** getlandmark(int numlandmarks){
         landmarks[i] = malloc(strlen(landmarkName)+1);      
         assert(landmarks[i] != NULL);
 
-        strcpy(landmarks[i],landmarkName);                      //landmarks' Name
+        strcpy(landmarks[i],landmarkName);   //landmarks' Name
     }
     return landmarks;
 }
 
 /*----------- Main function-------------------*/
 
-void walkingLink(Graph g,int links, char **landmarks) {
+void walkingLink(Graph g,int links, char **landmarks) { //add edges to graph g
     char from[31];
     char to[31];
     int time = 0;
@@ -93,24 +77,22 @@ void walkingLink(Graph g,int links, char **landmarks) {
     }
 }
 
-ferryDetail ferry(Graph g,int numFerry,char **landmarks){
-    ferryschedule *f = malloc(numFerry*sizeof(ferryschedule));      //array of ferry schedule
-    assert(f != NULL);
-
-    for (int i=0; i < numFerry; i++) {
-        scanf("%30s",f[i].dep_landmark);
+ferryDetail ferry(Graph g,int numFerry,char **landmarks){           //array of ferries
+    ferryschedule *f = malloc(numFerry*sizeof(ferryschedule));      //including schedule number and time
+    assert(f != NULL);                                              //and how can node traversed through(walk or ferry)
+    for (int i=0; i < numFerry; i++) {                              
+        scanf("%30s",f[i].dep_landmark);                            //ferry schedules stored
         scanf("%4s",f[i].dep_time);
         scanf("%30s",f[i].arv_landmark);
         scanf("%4s",f[i].arv_time);
     }
     
-
     int *landmarkType = calloc(numOfVertices(g)+numFerry,sizeof(int));      //for checking if landmarks can be traveled by ferry
     assert(landmarkType != NULL);                                           //if 0: can only visited through walking
                                                                             //if 1: can visited by both ferry and walk
     for (int j=0;j<numFerry;j++) {
         int e_dep = -1;
-        int e_arv = -1;
+        int e_arv = -1;                                                     
         for (int k=0;k<numOfVertices(g);k++){
             if (strcmp(f[j].dep_landmark,landmarks[k]) == 0) {
                 e_dep = k;
@@ -136,11 +118,10 @@ ferryDetail ferry(Graph g,int numFerry,char **landmarks){
     return takeFerry;
 }
 
-void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
+void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) { // to print result
     char fromLandmark[31];
     char tolandmark[31];
     char departAt[5];
-    //char dummy[5] = "0000";
     while (true) {
         printf("\nFrom: ");
         scanf("%s",fromLandmark);
@@ -169,7 +150,7 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
                 indexTo = i; //dest
             }
         }
-        Path p = Djikstra(g,indexFrom,indexTo,takeFerry,departAt,landmarks);
+        Path p = Dijkstra(g,indexFrom,indexTo,takeFerry,departAt,landmarks);
         if (numsteps(p) == 1){
             printf("No route.\n");
         }
@@ -205,6 +186,7 @@ void tripPlan(Graph g,char **landmarks,ferryDetail takeFerry) {
                 printf("No route.\n");
             }
         }
+        resetPath(p); //free malloc'd data
     }
 }
 
